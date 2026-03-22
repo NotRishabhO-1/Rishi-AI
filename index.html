@@ -3,37 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rishi AI</title>
+    <title>Rishi AI | Personal Assistant</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #131314; color: #e3e3e3; font-family: 'Google Sans', Arial, sans-serif; }
-        .chat-container { max-width: 850px; margin: 0 auto; padding: 20px; height: calc(100vh - 180px); overflow-y: auto; }
-        .user-bubble { background: #282a2d; padding: 12px 20px; border-radius: 24px; margin-bottom: 20px; align-self: flex-end; display: inline-block; }
-        .ai-bubble { margin-bottom: 30px; line-height: 1.7; font-size: 1.05rem; }
-        .input-box { max-width: 850px; margin: 0 auto; background: #1e1f20; border-radius: 32px; padding: 8px 20px; display: flex; align-items: center; }
+        body { background-color: #131314; color: #e3e3e3; font-family: 'Segoe UI', sans-serif; }
+        .chat-container { max-width: 800px; margin: 0 auto; height: calc(100vh - 160px); overflow-y: auto; padding: 20px; display: flex; flex-direction: column; }
+        .user-bubble { background: #282a2d; padding: 12px 20px; border-radius: 22px; margin-bottom: 24px; align-self: flex-end; max-width: 80%; }
+        .ai-bubble { margin-bottom: 32px; align-self: flex-start; max-width: 90%; line-height: 1.6; }
+        .input-area { max-width: 800px; margin: 0 auto; background: #1e1f20; border-radius: 30px; display: flex; align-items: center; padding: 6px 18px; border: 1px solid #3c4043; }
         input { background: transparent; border: none; outline: none; color: white; flex-grow: 1; padding: 12px; font-size: 16px; }
-        /* Hide scrollbar */
-        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        .typing-dots { display: inline-block; font-style: italic; color: #8e918f; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
     </style>
 </head>
 <body class="flex flex-col h-screen">
 
-    <header class="p-6 text-xl font-semibold text-gray-300">Rishi AI</header>
+    <header class="p-5 flex justify-between items-center">
+        <div class="text-xl font-medium text-gray-300">Rishi AI</div>
+        <div class="w-8 h-8 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-full"></div>
+    </header>
 
-    <main id="chat-window" class="chat-container flex flex-col">
-        <div class="ai-bubble text-3xl font-light text-gray-500 mt-20">
-            Hello! I'm Rishi.<br>How can I help you sparkle today?
+    <main id="chat-window" class="chat-container">
+        <div class="ai-bubble text-4xl font-light text-gray-500 mt-20">
+            Hello, I'm Rishi.<br>
+            <span class="text-2xl">How can I help you sparkle today?</span>
         </div>
     </main>
 
-    <footer class="p-4 bg-[#131314]">
-        <div class="input-box border border-transparent focus-within:border-gray-600">
-            <input type="text" id="user-input" placeholder="Type a message..." autocomplete="off">
-            <button id="send-btn" class="text-blue-400 hover:text-blue-300 p-2">
+    <footer class="p-4">
+        <div class="input-area focus-within:border-gray-500 transition-all">
+            <input id="user-input" type="text" placeholder="Enter a prompt here..." autocomplete="off">
+            <button id="send-btn" class="text-blue-400 hover:scale-110 transition-transform p-2">
                 <svg viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
             </button>
         </div>
-        <p class="text-center text-[10px] text-gray-600 mt-4">Rishi AI is built for learning. Check important info for accuracy.</p>
+        <p class="text-center text-[11px] text-gray-600 mt-3">Rishi AI may provide inaccurate info. Verification is recommended.</p>
     </footer>
 
     <script>
@@ -41,43 +47,64 @@
         const input = document.getElementById('user-input');
         const btn = document.getElementById('send-btn');
 
-        async function sendMessage() {
-            const text = input.value.trim();
-            if (!text) return;
+        // --- PASTE YOUR KEY HERE ---
+        const API_KEY = "YOUR_NVIDIA_API_KEY_HERE"; 
 
-            // Display User Message
-            const uDiv = document.createElement('div');
-            uDiv.innerHTML = `<div class="user-bubble">${text}</div>`;
-            uDiv.className = "text-right";
-            chatWindow.appendChild(uDiv);
+        async function handleChat() {
+            const prompt = input.value.trim();
+            if (!prompt) return;
+
+            // 1. Add User Bubble
+            const userDiv = document.createElement('div');
+            userDiv.className = "user-bubble";
+            userDiv.innerText = prompt;
+            chatWindow.appendChild(userDiv);
             
             input.value = "";
             chatWindow.scrollTop = chatWindow.scrollHeight;
 
-            // Show "Thinking" placeholder
+            // 2. Add AI "Thinking" Bubble
             const aiDiv = document.createElement('div');
-            aiDiv.className = "ai-bubble text-gray-400 italic";
-            aiDiv.innerText = "Rishi is thinking...";
+            aiDiv.className = "ai-bubble";
+            aiDiv.innerHTML = `<span class="typing-dots">Rishi is thinking...</span>`;
             chatWindow.appendChild(aiDiv);
 
-            // Fetch from Backend
+            // 3. API Call to NVIDIA
             try {
-                const response = await fetch('/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text })
+                const response = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: "microsoft/phi-3.5-mini-instruct",
+                        messages: [
+                            { role: "system", content: "You are Rishi AI, a smart, witty, and helpful assistant. You give clear and direct answers with a touch of charm." },
+                            { role: "user", content: prompt }
+                        ],
+                        temperature: 0.2,
+                        max_tokens: 1024
+                    })
                 });
+
                 const data = await response.json();
-                aiDiv.className = "ai-bubble"; // Remove italic/gray
-                aiDiv.innerText = data.reply;
-            } catch (err) {
-                aiDiv.innerText = "Error connecting to Rishi AI.";
+                
+                if (data.choices && data.choices[0]) {
+                    aiDiv.innerText = data.choices[0].message.content;
+                } else {
+                    aiDiv.innerText = "Oops! Something went wrong with the AI response.";
+                }
+            } catch (error) {
+                aiDiv.innerText = "Connection error. Please check your API key or internet.";
+                console.error(error);
             }
+            
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
-        btn.onclick = sendMessage;
-        input.onkeypress = (e) => { if(e.key === 'Enter') sendMessage(); };
+        btn.onclick = handleChat;
+        input.onkeypress = (e) => { if(e.key === 'Enter') handleChat(); };
     </script>
 </body>
 </html>
