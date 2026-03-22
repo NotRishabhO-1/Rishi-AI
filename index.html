@@ -3,285 +3,257 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Universal AI Chat</title>
+    <title>Rishi AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
-        
         :root { --sidebar-width: 280px; }
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
-        .dark ::-webkit-scrollbar-thumb { background: #374151; }
-
-        /* Animation for streaming */
         .cursor-blink {
-            display: inline-block;
-            width: 8px;
-            height: 18px;
-            background: #3b82f6;
-            margin-left: 2px;
-            animation: blink 1s infinite;
-            vertical-align: middle;
+            display: inline-block; width: 8px; height: 18px;
+            background: #3b82f6; margin-left: 2px;
+            animation: blink 1s infinite; vertical-align: middle;
         }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-        #app { display: none; }
+        #app { display: none; opacity: 0; transition: opacity 0.4s ease; }
         #loading {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; justify-content: center; align-items: center;
-            background: white; z-index: 9999;
+            position: fixed; inset: 0; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; background: white; z-index: 9999;
         }
-        .dark #loading { background: #111827; color: white; }
+        .dark #loading { background: #0f172a; color: white; }
 
-        /* Mobile Sidebar Overlay */
-        #sidebar-overlay { display: none; }
         @media (max-width: 768px) {
             #sidebar {
                 position: fixed; left: -280px; top: 0; bottom: 0;
-                z-index: 50; transition: transform 0.3s ease;
+                z-index: 50; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 width: var(--sidebar-width);
             }
             #sidebar.open { transform: translateX(280px); }
-            #sidebar-overlay.open { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
+            #sidebar-overlay.open { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(2px); z-index: 40; }
         }
 
-        /* Markdown Styling */
-        .prose pre { background: #f3f4f6; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 0.5rem 0; }
-        .dark .prose pre { background: #1f2937; }
-        .prose code { font-size: 0.875rem; color: #ef4444; }
-        .prose p { margin-bottom: 0.75rem; }
+        .prose pre { background: #f3f4f6; padding: 1rem; border-radius: 0.75rem; overflow-x: auto; margin: 0.5rem 0; border: 1px solid #e5e7eb; }
+        .dark .prose pre { background: #1e293b; border-color: #334155; }
+        .prose code { font-size: 0.875rem; color: #2563eb; font-weight: 600; }
+        .dark .prose code { color: #60a5fa; }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200">
+<body class="bg-gray-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-200">
 
     <div id="loading">
-        <div class="flex flex-col items-center">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-            <p class="font-medium text-gray-600 dark:text-gray-400">Initializing Gemini Clone...</p>
+        <div class="relative w-16 h-16">
+            <div class="absolute inset-0 border-4 border-blue-100 dark:border-slate-800 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
         </div>
+        <p class="mt-4 font-semibold tracking-wide animate-pulse text-slate-600 dark:text-slate-400">RISHI AI</p>
     </div>
 
     <div id="app" class="flex min-h-screen">
         <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
-        <aside id="sidebar" class="w-[280px] flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full overflow-hidden">
+        <aside id="sidebar" class="w-[280px] flex-shrink-0 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col h-screen">
             <div class="p-4 flex flex-col h-full">
-                <button onclick="createNewChat()" class="flex items-center gap-2 px-4 py-3 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-2xl hover:bg-blue-100 transition-all font-medium mb-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                    New Chat
+                <div class="flex items-center gap-2 px-2 mb-6">
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">R</div>
+                    <span class="font-bold text-xl tracking-tight">Rishi AI</span>
+                </div>
+
+                <button onclick="createNewChat()" class="flex items-center justify-center gap-2 px-4 py-3 bg-slate-900 dark:bg-blue-600 text-white rounded-xl hover:opacity-90 transition-all font-medium mb-4 shadow-sm">
+                    <span>+ New Chat</span>
                 </button>
 
-                <div class="flex-1 overflow-y-auto space-y-1" id="chat-history-list">
-                    </div>
+                <div class="flex-1 overflow-y-auto space-y-1 pr-1" id="chat-history-list"></div>
 
-                <div class="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
-                    <button onclick="toggleDarkMode()" class="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition">
-                        <span id="theme-icon">🌙</span> <span id="theme-text">Dark Mode</span>
+                <div class="mt-auto pt-4 border-t border-slate-200 dark:border-slate-700 space-y-1">
+                    <button onclick="toggleDarkMode()" class="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition">
+                        <span id="theme-icon">🌙</span> <span id="theme-text" class="text-sm font-medium">Dark Mode</span>
                     </button>
-                    <button onclick="openSettings()" class="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition">
-                        ⚙️ Settings
+                    <button onclick="openSettings()" class="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition">
+                        <span class="text-sm">⚙️</span> <span class="text-sm font-medium text-slate-600 dark:text-slate-300">Settings</span>
                     </button>
                 </div>
             </div>
         </aside>
 
-        <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
-            <header class="h-14 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md">
-                <button onclick="toggleSidebar()" class="md:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+        <main class="flex-1 flex flex-col h-screen relative bg-white dark:bg-slate-900">
+            <header class="h-16 flex items-center justify-between px-4 border-b border-slate-100 dark:border-slate-800">
+                <button onclick="toggleSidebar()" class="md:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                 </button>
-                <div class="font-semibold text-lg" id="current-chat-title">New Chat</div>
-                <div class="w-10"></div> </header>
+                <div class="font-bold text-slate-700 dark:text-slate-200 truncate max-w-[200px]" id="current-chat-title">New Chat</div>
+                <div class="w-10"></div>
+            </header>
 
-            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 scroll-smooth">
-                <div id="welcome-screen" class="h-full flex flex-col items-center justify-center text-center max-w-2xl mx-auto space-y-4">
-                    <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Hello, how can I help?</h1>
-                    <p class="text-gray-500 dark:text-gray-400">Ask anything! This interface connects to OpenRouter models with streaming enabled.</p>
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 md:p-10 space-y-8">
+                <div id="welcome-screen" class="h-full flex flex-col items-center justify-center text-center max-w-xl mx-auto py-20">
+                    <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-4xl font-bold mb-6 shadow-xl">R</div>
+                    <h1 class="text-3xl md:text-5xl font-bold text-slate-900 dark:text-white mb-4">How can I help you today?</h1>
+                    <p class="text-slate-500 dark:text-slate-400 text-lg">Rishi AI is ready to assist with code, writing, or analysis.</p>
                 </div>
             </div>
 
-            <div class="p-4 bg-white dark:bg-gray-900">
-                <div class="max-w-4xl mx-auto relative">
+            <div class="p-4 md:pb-8 bg-gradient-to-t from-white via-white to-transparent dark:from-slate-900 dark:via-slate-900">
+                <div class="max-w-4xl mx-auto relative group">
                     <textarea id="user-input" rows="1" 
-                        class="w-full p-4 pr-14 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none transition-all shadow-sm"
-                        placeholder="Enter a prompt here..."></textarea>
+                        class="w-full p-4 pr-16 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none transition-all shadow-lg text-slate-700 dark:text-slate-200"
+                        placeholder="Type a message..."></textarea>
                     <button id="send-btn" onclick="handleSendMessage()" 
-                        class="absolute right-3 bottom-3 p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
+                        class="absolute right-3 bottom-3 p-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-md disabled:opacity-40">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
                     </button>
                 </div>
-                <p class="text-[10px] text-center mt-2 text-gray-400">Powered by OpenRouter API. Privacy and keys stored locally.</p>
             </div>
         </main>
 
-        <div id="settings-modal" class="fixed inset-0 bg-black/50 z-[100] hidden items-center justify-center p-4">
-            <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-bold">Settings</h2>
-                    <button onclick="closeSettings()" class="text-gray-400 hover:text-gray-600">✕</button>
-                </div>
+        <div id="settings-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full p-8 shadow-2xl border border-slate-200 dark:border-slate-700">
+                <h2 class="text-2xl font-bold mb-2">Configuration</h2>
+                <p class="text-slate-500 dark:text-slate-400 text-sm mb-6">Settings are saved in your browser.</p>
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium mb-1">OpenRouter API Key</label>
-                        <input type="password" id="api-key-input" class="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-transparent" placeholder="sk-or-v1-...">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">OpenRouter API Key</label>
+                        <input type="password" id="api-key-input" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 outline-none focus:ring-2 focus:ring-blue-500" placeholder="sk-or-v1-...">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium mb-1">Model Name</label>
-                        <input type="text" id="model-input" class="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-transparent" placeholder="deepseek/deepseek-r1:free">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Model ID</label>
+                        <input type="text" id="model-input" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 outline-none focus:ring-2 focus:ring-blue-500" placeholder="deepseek/deepseek-r1:free">
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">System Prompt</label>
-                        <textarea id="system-prompt-input" rows="3" class="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-transparent" placeholder="You are a helpful assistant..."></textarea>
+                    <div class="flex gap-3 mt-8">
+                        <button onclick="closeSettings()" class="flex-1 px-4 py-3 rounded-xl font-semibold bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 transition">Cancel</button>
+                        <button onclick="saveSettings()" class="flex-1 px-4 py-3 rounded-xl font-semibold bg-blue-600 text-white hover:bg-blue-700 transition">Save</button>
                     </div>
-                    <button onclick="saveSettings()" class="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition">Save Configuration</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // State Management
+        // Reactive State
         let state = {
-            apiKey: localStorage.getItem('api_key') || '',
-            model: localStorage.getItem('model') || 'deepseek/deepseek-r1:free',
-            systemPrompt: localStorage.getItem('system_prompt') || 'You are a helpful AI assistant.',
-            isDarkMode: localStorage.getItem('dark_mode') === 'true',
-            chats: JSON.parse(localStorage.getItem('chats')) || [],
+            apiKey: localStorage.getItem('rishi_api_key') || '',
+            model: localStorage.getItem('rishi_model') || 'deepseek/deepseek-r1:free',
+            isDarkMode: localStorage.getItem('rishi_dark_mode') === 'true',
+            chats: JSON.parse(localStorage.getItem('rishi_chats')) || [],
             activeChatId: null,
             isStreaming: false
         };
 
-        // DOM Elements
         const chatContainer = document.getElementById('chat-messages');
         const userInput = document.getElementById('user-input');
         const historyList = document.getElementById('chat-history-list');
 
-        // Initialization
-        window.onload = () => {
-            initApp();
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('app').style.display = 'flex';
-        };
-
-        function initApp() {
-            if (state.isDarkMode) document.documentElement.classList.add('dark');
-            updateThemeUI();
-            renderHistory();
-            autoResizeInput();
-            
-            // Textarea Enter key handling
-            userInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                }
-            });
+        // Fail-safe init
+        function init() {
+            try {
+                if (state.isDarkMode) document.documentElement.classList.add('dark');
+                updateThemeUI();
+                renderHistory();
+                autoResizeInput();
+                
+                userInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                    }
+                });
+                console.log("Rishi AI Core Ready");
+            } catch (err) {
+                console.error("Init Error:", err);
+            } finally {
+                const loader = document.getElementById('loading');
+                const app = document.getElementById('app');
+                loader.style.opacity = '0';
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    app.style.display = 'flex';
+                    setTimeout(() => app.style.opacity = '1', 50);
+                }, 400);
+            }
         }
-
-        // --- Core Functions ---
 
         async function handleSendMessage() {
             const text = userInput.value.trim();
             if (!text || state.isStreaming) return;
             if (!state.apiKey) {
-                alert('Please enter an API key in settings first!');
+                alert('Please set your API Key in Settings first.');
                 return openSettings();
             }
 
             if (!state.activeChatId) createNewChat(false);
             
-            const currentChat = state.chats.find(c => c.id === state.activeChatId);
-            currentChat.messages.push({ role: 'user', content: text });
+            const chat = state.chats.find(c => c.id === state.activeChatId);
+            chat.messages.push({ role: 'user', content: text });
             
             userInput.value = '';
             userInput.style.height = 'auto';
             renderMessages();
-            
-            await streamAIResponse(currentChat);
+            await streamAIResponse(chat);
         }
 
         async function streamAIResponse(chat) {
             state.isStreaming = true;
-            toggleSendButton(true);
+            setBtnState(true);
             
-            const aiMsgObj = { role: 'assistant', content: '' };
-            chat.messages.push(aiMsgObj);
+            const aiMsg = { role: 'assistant', content: '' };
+            chat.messages.push(aiMsg);
             
-            const msgIndex = chat.messages.length - 1;
-            const msgEl = createMessageElement('assistant', '');
+            const msgEl = createMsgEl('assistant', '');
             chatContainer.appendChild(msgEl);
-            const contentEl = msgEl.querySelector('.msg-content');
+            const contentEl = msgEl.querySelector('.msg-c');
             
             try {
-                const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                     method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${state.apiKey}`,
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Authorization': `Bearer ${state.apiKey}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         model: state.model,
-                        messages: [
-                            { role: 'system', content: state.systemPrompt },
-                            ...chat.messages.slice(0, -1)
-                        ],
+                        messages: chat.messages.slice(0, -1),
                         stream: true
                     })
                 });
 
-                if (!response.ok) throw new Error(await response.text());
+                if (!res.ok) throw new Error(await res.text());
 
-                const reader = response.body.getReader();
+                const reader = res.body.getReader();
                 const decoder = new TextDecoder();
                 
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
                     
-                    const chunk = decoder.decode(value);
-                    const lines = chunk.split('\n').filter(line => line.trim() !== '');
-                    
-                    for (const line of lines) {
-                        if (line.includes('[DONE]')) continue;
+                    const chunks = decoder.decode(value).split('\n');
+                    for (const chunk of chunks) {
+                        if (!chunk.trim() || chunk.includes('[DONE]')) continue;
                         try {
-                            const data = JSON.parse(line.replace('data: ', ''));
-                            const token = data.choices[0]?.delta?.content || '';
-                            aiMsgObj.content += token;
-                            contentEl.innerHTML = marked.parse(aiMsgObj.content + '<span class="cursor-blink"></span>');
+                            const json = JSON.parse(chunk.replace('data: ', ''));
+                            const token = json.choices[0]?.delta?.content || '';
+                            aiMsg.content += token;
+                            contentEl.innerHTML = marked.parse(aiMsg.content + '<span class="cursor-blink"></span>');
                             chatContainer.scrollTop = chatContainer.scrollHeight;
-                        } catch (e) { console.error("Parse Error", e); }
+                        } catch (e) {}
                     }
                 }
             } catch (err) {
-                aiMsgObj.content = `Error: ${err.message}`;
-                contentEl.innerText = aiMsgObj.content;
+                aiMsg.content = `**System Error:** ${err.message}`;
             } finally {
-                contentEl.innerHTML = marked.parse(aiMsgObj.content);
+                contentEl.innerHTML = marked.parse(aiMsg.content);
                 state.isStreaming = false;
-                toggleSendButton(false);
-                saveChats();
+                setBtnState(false);
+                save();
                 renderHistory();
             }
         }
 
-        // --- UI Utils ---
-
-        function createNewChat(shouldRender = true) {
-            const newChat = {
-                id: Date.now().toString(),
-                title: 'New Chat',
-                messages: [],
-                timestamp: new Date()
-            };
-            state.chats.unshift(newChat);
-            state.activeChatId = newChat.id;
-            saveChats();
+        function createNewChat(render = true) {
+            const id = Date.now().toString();
+            state.chats.unshift({ id, title: 'New Chat', messages: [] });
+            state.activeChatId = id;
+            save();
             renderHistory();
-            if (shouldRender) renderMessages();
+            if (render) renderMessages();
             if (window.innerWidth < 768) toggleSidebar();
         }
 
@@ -291,78 +263,55 @@
             
             if (!chat || chat.messages.length === 0) {
                 document.getElementById('welcome-screen').style.display = 'flex';
-                document.getElementById('current-chat-title').innerText = "New Chat";
+                document.getElementById('current-chat-title').innerText = "Rishi AI";
                 return;
             }
 
             document.getElementById('welcome-screen').style.display = 'none';
-            document.getElementById('current-chat-title').innerText = chat.title === 'New Chat' && chat.messages.length > 0 
-                ? chat.messages[0].content.substring(0, 30) + '...' 
-                : chat.title;
+            const firstMsg = chat.messages.find(m => m.role === 'user');
+            document.getElementById('current-chat-title').innerText = firstMsg ? firstMsg.content.substring(0, 25) + '...' : 'New Chat';
 
-            chat.messages.forEach(msg => {
-                chatContainer.appendChild(createMessageElement(msg.role, msg.content));
-            });
+            chat.messages.forEach(m => chatContainer.appendChild(createMsgEl(m.role, m.content)));
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        function createMessageElement(role, content) {
-            const div = document.createElement('div');
-            div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`;
-            
-            const inner = document.createElement('div');
-            inner.className = `max-w-[85%] md:max-w-[70%] p-4 rounded-2xl ${
-                role === 'user' 
-                ? 'bg-blue-600 text-white rounded-tr-none' 
-                : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm rounded-tl-none prose dark:prose-invert'
-            }`;
-            
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'msg-content break-words overflow-x-auto';
-            contentDiv.innerHTML = role === 'assistant' ? marked.parse(content) : escapeHTML(content);
-            
-            inner.appendChild(contentDiv);
-            div.appendChild(inner);
-            return div;
+        function createMsgEl(role, content) {
+            const d = document.createElement('div');
+            d.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2`;
+            d.innerHTML = `
+                <div class="max-w-[85%] md:max-w-[75%] p-4 rounded-2xl ${role === 'user' 
+                    ? 'bg-blue-600 text-white rounded-tr-none shadow-md' 
+                    : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 prose dark:prose-invert rounded-tl-none shadow-sm'}">
+                    <div class="msg-c">${role === 'assistant' ? marked.parse(content) : content}</div>
+                </div>`;
+            return d;
         }
 
         function renderHistory() {
             historyList.innerHTML = '';
-            state.chats.forEach(chat => {
-                const btn = document.createElement('div');
-                btn.className = `group flex items-center justify-between p-3 rounded-xl cursor-pointer transition ${
-                    state.activeChatId === chat.id ? 'bg-gray-100 dark:bg-gray-700' : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-                }`;
-                btn.onclick = () => selectChat(chat.id);
+            state.chats.forEach(c => {
+                const active = state.activeChatId === c.id;
+                const div = document.createElement('div');
+                div.className = `group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all ${active ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'hover:bg-slate-100 dark:hover:bg-slate-700/50'}`;
+                div.onclick = () => { state.activeChatId = c.id; renderMessages(); renderHistory(); if(window.innerWidth < 768) toggleSidebar(); };
                 
-                const title = chat.messages.length > 0 ? chat.messages[0].content : 'New Chat';
-                btn.innerHTML = `
+                const title = c.messages.length > 0 ? c.messages[0].content : 'New Chat';
+                div.innerHTML = `
                     <div class="flex items-center gap-3 overflow-hidden">
-                        <span class="flex-shrink-0">💬</span>
+                        <span class="text-xs">●</span>
                         <span class="truncate text-sm font-medium">${title}</span>
                     </div>
-                    <button onclick="event.stopPropagation(); deleteChat('${chat.id}')" class="opacity-0 group-hover:opacity-100 p-1 hover:text-red-500 transition">🗑️</button>
+                    <button onclick="event.stopPropagation(); deleteChat('${c.id}')" class="opacity-0 group-hover:opacity-100 p-1 hover:text-red-500 transition">✕</button>
                 `;
-                historyList.appendChild(btn);
+                historyList.appendChild(div);
             });
-        }
-
-        function selectChat(id) {
-            state.activeChatId = id;
-            renderMessages();
-            renderHistory();
-            if (window.innerWidth < 768) toggleSidebar();
         }
 
         function deleteChat(id) {
             state.chats = state.chats.filter(c => c.id !== id);
             if (state.activeChatId === id) state.activeChatId = null;
-            saveChats();
-            renderHistory();
-            renderMessages();
+            save(); renderHistory(); renderMessages();
         }
-
-        // --- Settings & UI Helpers ---
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
@@ -372,7 +321,7 @@
         function toggleDarkMode() {
             state.isDarkMode = !state.isDarkMode;
             document.documentElement.classList.toggle('dark');
-            localStorage.setItem('dark_mode', state.isDarkMode);
+            localStorage.setItem('rishi_dark_mode', state.isDarkMode);
             updateThemeUI();
         }
 
@@ -384,31 +333,37 @@
         function openSettings() {
             document.getElementById('api-key-input').value = state.apiKey;
             document.getElementById('model-input').value = state.model;
-            document.getElementById('system-prompt-input').value = state.systemPrompt;
             document.getElementById('settings-modal').style.display = 'flex';
         }
 
-        function closeSettings() {
-            document.getElementById('settings-modal').style.display = 'none';
-        }
+        function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
 
         function saveSettings() {
             state.apiKey = document.getElementById('api-key-input').value.trim();
             state.model = document.getElementById('model-input').value.trim() || 'deepseek/deepseek-r1:free';
-            state.systemPrompt = document.getElementById('system-prompt-input').value.trim();
-            
-            localStorage.setItem('api_key', state.apiKey);
-            localStorage.setItem('model', state.model);
-            localStorage.setItem('system_prompt', state.systemPrompt);
-            
+            localStorage.setItem('rishi_api_key', state.apiKey);
+            localStorage.setItem('rishi_model', state.model);
             closeSettings();
         }
 
-        function saveChats() {
-            localStorage.setItem('chats', JSON.stringify(state.chats));
-        }
+        function save() { localStorage.setItem('rishi_chats', JSON.stringify(state.chats)); }
 
         function autoResizeInput() {
-            userInput.addEventListener('input', function() {
+            userInput.oninput = function() {
                 this.style.height = 'auto';
-                this.style.height
+                this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+            };
+        }
+
+        function setBtnState(loading) {
+            const btn = document.getElementById('send-btn');
+            btn.disabled = loading;
+            btn.innerHTML = loading ? `<div class="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>` : `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>`;
+        }
+
+        // Boot
+        if (document.readyState === 'complete') init();
+        else window.addEventListener('load', init);
+    </script>
+</body>
+</html>
